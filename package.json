@@ -1,0 +1,42 @@
+{
+  "name": "gatehouse-ts",
+  "module": "src/gatehouse.ts",
+  "description": "A TypeScript library for building and managing authorization policies.",
+  "author": "gr4vityWall",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/9Morello/gatehouse-ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/9Morello/gatehouse-ts.git"
+  },
+  "keywords": [
+    "authorization",
+    "policy",
+    "gatehouse",
+    "typescript"
+  ],
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/gatehouse.js",
+  "types": "dist/gatehouse.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/gatehouse.d.ts",
+      "default": "./dist/gatehouse.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "docs": "npx typedoc src/gatehouse.ts --plugin typedoc-material-theme --themeColor '#cb9820'"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typedoc": "0.28.2",
+    "typedoc-material-theme": "1.4.0",
+    "typescript": "^5"
+  }
+}
