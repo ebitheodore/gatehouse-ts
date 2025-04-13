@@ -13,6 +13,10 @@ Credits for the original API design, Rust implementation and usage instructions 
 - **Fluent Builder API**: Construct custom policies with a PolicyBuilder.
 - **Type Safety**: Strongly typed resources/actions/contexts.
 
+### Documentation
+
+[Click here](https://9morello.github.io/gatehouse-ts/) to browse the documentation.
+
 ## Quick Start
 
 Here is an example of how to build a role-based `Policy` and evaluate access with it.
