@@ -21,7 +21,7 @@ Here is an example of how to build a role-based `Policy` and evaluate access wit
 import {
     buildRbacPolicy,
     PermissionChecker
-  } from './src';
+  } from 'gatehouse-ts';
   
   type User = {
     id: number;

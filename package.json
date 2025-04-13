@@ -7,7 +7,7 @@
   "homepage": "https://github.com/9Morello/gatehouse-ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/9Morello/gatehouse-ts.git"
+    "url": "git+https://github.com/9Morello/gatehouse-ts.git"
   },
   "keywords": [
     "authorization",
